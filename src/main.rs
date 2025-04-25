@@ -3,10 +3,9 @@ mod matrix;
 use std::time::Duration;
 
 use color_eyre::{Result, eyre::Context};
-use rand::{random_ratio, rng, seq::IndexedRandom, thread_rng};
+use rand::{random_ratio, rng, seq::IndexedRandom};
 use ratatui::{
-    DefaultTerminal, Frame,
-    crossterm::event::{self, Event, KeyCode},
+    crossterm::event::{self, Event, KeyCode}, text::Line, DefaultTerminal, Frame
 };
 
 use matrix::Matrix;
@@ -30,11 +29,10 @@ fn matrix_transform(before: &str) -> String {
     before
         .chars()
         .map(|x| {
-            let mut prop = PROP_COME;
-
-            if x.is_alphabetic() {
-                prop = PROP_STAY;
-            }
+            let prop = match x.is_alphabetic() {
+                true => PROP_STAY,
+                false => PROP_COME,
+            };
 
             let sample = ['A', 'B', 'C', 'D', 'a', 'b', 'c', 'd'];
 
@@ -48,8 +46,8 @@ fn matrix_transform(before: &str) -> String {
 
 fn run(mut terminal: DefaultTerminal) -> Result<()> {
     let size = terminal.size().context("failed to fetch terminal size")?;
-    let mut matrix = Matrix::new(size.height as usize);
 
+    let mut matrix = Matrix::new(size.height as usize);
     let mut generator: String = vec![' '; size.width as usize].into_iter().collect();
 
     loop {
@@ -61,7 +59,7 @@ fn run(mut terminal: DefaultTerminal) -> Result<()> {
 
         generator = matrix_transform(&generator);
 
-        matrix.push_line_on_top(ratatui::text::Line::raw(generator.clone()));
+        matrix.push_line_on_top(Line::raw(generator.clone()));
     }
 
     Ok(())
