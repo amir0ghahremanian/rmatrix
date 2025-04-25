@@ -23,8 +23,8 @@ fn main() -> Result<()> {
     app_result
 }
 
-const PROP_COME: u32 = 10;
-const PROP_STAY: u32 = 75;
+const PROP_COME: u32 = 5;
+const PROP_STAY: u32 = 85;
 
 fn matrix_transform(before: &str) -> String {
     before
