@@ -2,10 +2,18 @@ mod matrix;
 
 use std::time::Duration;
 
-use color_eyre::{Result, eyre::Context};
+use color_eyre::{
+    Result,
+    eyre::{Context, Ok},
+};
 use rand::{random_ratio, rng, seq::IndexedRandom};
 use ratatui::{
-    crossterm::event::{self, Event, KeyCode}, text::Line, DefaultTerminal, Frame
+    DefaultTerminal, Frame,
+    crossterm::event::{self, Event, KeyCode},
+    layout::Rect,
+    style::{Color, Style},
+    text::Line,
+    widgets::{Borders, Clear, ListState, Padding},
 };
 
 use matrix::Matrix;
@@ -53,9 +61,53 @@ fn run(mut terminal: DefaultTerminal) -> Result<()> {
     loop {
         terminal.draw(|frame| draw(frame, matrix.text()))?;
 
-        if should_quit()? {
-            break;
-        }
+        match listen()? {
+            KeyEvent::Menu => {
+                matrix.dim();
+
+                let menu_block = ratatui::widgets::Block::default()
+                    .borders(Borders::ALL)
+                    .padding(Padding::uniform(1))
+                    .title("Menu");
+                let menu_items = ["Settings", "Return"];
+                let menu_list = ratatui::widgets::List::new(menu_items)
+                    .block(menu_block)
+                    .highlight_style(Style::new().fg(Color::Black).bg(Color::White))
+                    .style(Style::new().fg(Color::White));
+                let mut menu_state = ListState::default();
+
+                let area = Rect::new(4, 2, 12, 6);
+                loop {
+                    match listen()? {
+                        KeyEvent::Up => {
+                            menu_state.select_previous();
+                        }
+                        KeyEvent::Down => {
+                            menu_state.select_next();
+                        }
+                        KeyEvent::Enter => {
+                            match menu_state.selected() {
+                                Some(0) => {}
+                                Some(1) => break,
+                                _ => {}
+                            };
+                        }
+                        KeyEvent::Quit => break,
+                        _ => {}
+                    }
+
+                    terminal.draw(|frame| {
+                        frame.render_widget(matrix.text(), frame.area());
+                        frame.render_widget(Clear, area);
+                        frame.render_stateful_widget(&menu_list, area, &mut menu_state);
+                    })?;
+                }
+
+                matrix.normal();
+            }
+            KeyEvent::Quit => break,
+            _ => {}
+        };
 
         generator = matrix_transform(&generator);
 
@@ -72,12 +124,29 @@ where
     frame.render_widget(widget, frame.area());
 }
 
-fn should_quit() -> Result<bool> {
+enum KeyEvent {
+    Quit,
+    Menu,
+    None,
+    Up,
+    Down,
+    Enter,
+}
+
+fn listen() -> Result<KeyEvent> {
     if event::poll(Duration::from_millis(250)).context("event poll failed")? {
-        if let Event::Key(key) = event::read().context("event read failed")? {
-            return Ok(KeyCode::Char('q') == key.code);
-        }
+        match event::read().context("event read failed")? {
+            Event::Key(key) => match key.code {
+                KeyCode::Char('q') => return Ok(KeyEvent::Quit),
+                KeyCode::Char('m') => return Ok(KeyEvent::Menu),
+                KeyCode::Up => return Ok(KeyEvent::Up),
+                KeyCode::Down => return Ok(KeyEvent::Down),
+                KeyCode::Enter => return Ok(KeyEvent::Enter),
+                _ => return Ok(KeyEvent::None),
+            },
+            _ => return Ok(KeyEvent::None),
+        };
     }
 
-    Ok(false)
+    Ok(KeyEvent::None)
 }

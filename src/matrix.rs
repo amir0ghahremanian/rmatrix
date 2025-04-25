@@ -1,5 +1,5 @@
 use ratatui::{
-    style::{Color, Style},
+    style::{Color, Style, Stylize},
     text::{Line, Text},
 };
 
@@ -52,5 +52,13 @@ impl<'a> Matrix<'a> {
 
     pub fn len(&self) -> usize {
         self.inner.lines.len()
+    }
+
+    pub fn dim(&mut self) {
+        self.inner.style = self.inner.style.fg(Color::Rgb(40, 66, 40));
+    }
+
+    pub fn normal(&mut self) {
+        self.inner.style = self.inner.style.fg(Color::Green);
     }
 }
