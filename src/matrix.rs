@@ -1,14 +1,23 @@
-use ratatui::text::{Line, Text};
+use ratatui::{
+    style::{Color, Style},
+    text::{Line, Text},
+};
 
 pub struct Matrix<'a> {
     inner: Text<'a>,
     max_length: usize,
 }
 
+#[allow(dead_code)]
 impl<'a> Matrix<'a> {
     pub fn new(max_length: usize) -> Self {
+        let style = Style::new().fg(Color::Green);
+
         Self {
-            inner: Text::default(),
+            inner: Text {
+                style,
+                ..Default::default()
+            },
             max_length,
         }
     }

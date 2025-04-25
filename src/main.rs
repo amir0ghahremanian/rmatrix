@@ -36,8 +36,10 @@ fn matrix_transform(before: &str) -> String {
                 prop = PROP_STAY;
             }
 
+            let sample = ['A', 'B', 'C', 'D', 'a', 'b', 'c', 'd'];
+
             match random_ratio(prop, 100) {
-                true => *['A', 'B', 'C', 'D'].choose(&mut rng()).unwrap(),
+                true => *sample.choose(&mut rng()).unwrap(),
                 false => ' ',
             }
         })
