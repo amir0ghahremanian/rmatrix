@@ -12,7 +12,8 @@ use ratatui::{
 use matrix::Matrix;
 
 fn main() -> Result<()> {
-    color_eyre::install()?; // augment errors / panics with easy to read messages
+    // augment errors / panics with easy to read messages
+    color_eyre::install()?;
 
     let terminal = ratatui::init();
 
@@ -24,24 +25,26 @@ fn main() -> Result<()> {
 
 fn run(mut terminal: DefaultTerminal) -> Result<()> {
     let size = terminal.size().context("failed to fetch terminal size")?;
-    let mut matrix = Matrix::new(size.width as usize, size.height as usize);
+    let mut matrix = Matrix::new();
 
     loop {
-        terminal.draw(|frame| draw_matrix(frame, matrix.string()))?;
+        terminal.draw(|frame| draw(frame, matrix.text()))?;
 
         if should_quit()? {
             break;
         }
 
-        matrix.add_line("haha");
+        matrix.write_line(ratatui::text::Line::raw("test"));
     }
 
     Ok(())
 }
 
-fn draw_matrix(frame: &mut Frame, matrix: String) {
-    let tx = Text::raw(&matrix);
-    frame.render_widget(tx, frame.area());
+fn draw<W>(frame: &mut Frame, widget: W)
+where
+    W: ratatui::widgets::Widget,
+{
+    frame.render_widget(widget, frame.area());
 }
 
 fn should_quit() -> Result<bool> {
