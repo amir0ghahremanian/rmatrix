@@ -1,24 +1,35 @@
 use ratatui::text::{Line, Text};
 
-pub struct Matrix<'a>(Text<'a>);
+pub struct Matrix<'a> {
+    inner: Text<'a>,
+    max_length: usize,
+}
 
 impl<'a> Matrix<'a> {
-    pub fn new() -> Self {
-        let mut s = Self(Text::raw(""));
-
-        s.0.lines.clear();
-
-        s
+    pub fn new(max_length: usize) -> Self {
+        Self {
+            inner: Text::default(),
+            max_length,
+        }
     }
 
-    pub fn write_line<L>(&mut self, line: L)
+    pub fn push_line<L>(&mut self, line: L)
     where
         L: Into<Line<'a>>,
     {
-        self.0.push_line(line);
+        if self.inner.lines.len() == self.max_length {
+            self.inner.lines.rotate_left(1);
+            self.inner.lines.pop();
+        }
+
+        self.inner.push_line(line);
     }
 
     pub fn text(&self) -> &Text {
-        &self.0
+        &self.inner
+    }
+
+    pub fn len(&self) -> usize {
+        self.inner.lines.len()
     }
 }

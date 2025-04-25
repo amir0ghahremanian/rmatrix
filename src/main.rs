@@ -6,7 +6,6 @@ use color_eyre::{Result, eyre::Context};
 use ratatui::{
     DefaultTerminal, Frame,
     crossterm::event::{self, Event, KeyCode},
-    text::Text,
 };
 
 use matrix::Matrix;
@@ -25,7 +24,7 @@ fn main() -> Result<()> {
 
 fn run(mut terminal: DefaultTerminal) -> Result<()> {
     let size = terminal.size().context("failed to fetch terminal size")?;
-    let mut matrix = Matrix::new();
+    let mut matrix = Matrix::new(size.height as usize);
 
     loop {
         terminal.draw(|frame| draw(frame, matrix.text()))?;
@@ -34,7 +33,7 @@ fn run(mut terminal: DefaultTerminal) -> Result<()> {
             break;
         }
 
-        matrix.write_line(ratatui::text::Line::raw("test"));
+        matrix.push_line(ratatui::text::Line::raw(matrix.len().to_string()));
     }
 
     Ok(())
